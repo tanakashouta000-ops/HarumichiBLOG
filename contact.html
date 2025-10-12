@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HarumichiBLOG - Contact</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="loader">
+        <h1>HARUMICHIBLOG</h1>
+    </div>
+
+    <header class="header">
+        <div class="logo">Harumichi<span>BLOG</span></div>
+        <nav class="nav" id="navMenu">
+            <a href="index.html">Home</a>
+            <a href="articles.html">Articles</a>
+            <a href="gallery.html">Gallery</a>
+            <a href="contact.html">Contact</a>
+        </nav>
+        <div class="header-controls">
+            <button id="darkModeToggle" class="dark-toggle">🌙</button>
+            <button id="menuToggle" class="hamburger">☰</button>
+        </div>
+    </header>
+
+    <section class="hero fade-in">
+        <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80" alt="Contact">
+        <div class="hero-text">
+            <h1>CONTACT</h1>
+            <p>HarumichiBLOGへのお問い合わせはこちら</p>
+        </div>
+    </section>
+
+    <main class="content">
+        <section class="article fade-in">
+            <div class="text">
+                <h2>お問い合わせフォーム</h2>
+                <form action="#" method="post" class="contact-form">
+                    <label>名前</label><br>
+                    <input type="text" name="name" required><br><br>
+
+                    <label>メール</label><br>
+                    <input type="email" name="email" required><br><br>
+
+                    <label>メッセージ</label><br>
+                    <textarea name="message" rows="5" required></textarea><br><br>
+
+                    <button type="submit" class="btn">送信</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer fade-in">
+        <p>© 2025 HarumichiBLOG | Designed with Passion</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
