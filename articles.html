@@ -1,69 +1,650 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HarumichiBLOG - Articles</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>HarumichiBLOG</title>
+<meta name="description" content="日常・写真・旅行を記録するダークブラウン系ブログ" />
+<style>
+  :root{
+    --bg:#805445; /* ダークブラウン */
+    --panel:#2b1b16;
+    --muted:#bfa892; /* アイボリー系 */
+    --accent:#c89b48; /* ゴールドアクセント */
+    --text:#f6f0eb;
+    --glass: rgba(255,255,255,0.03);
+    --card-radius:12px;
+    --max-width:1100px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:linear-gradient(180deg,var(--bg),#19100c);
+    color:var(--text);font-family: "Hiragino Kaku Gothic Pro", "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+    line-height:1.6;
+  }
+
+  /* Loader */
+  #loader{
+    position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.8));
+    z-index:9999;backdrop-filter: blur(3px);
+  }
+  #loader .box{
+    text-align:center;padding:26px;border-radius:16px;background:var(--panel);
+    box-shadow:0 8px 30px rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.03)
+  }
+  #loader .title{font-size:18px;color:var(--muted);letter-spacing:0.08em}
+  #loader .dots{margin-top:12px;height:6px}
+  #loader .dots span{display:inline-block;width:8px;height:8px;margin:0 4px;background:var(--accent);border-radius:50%;opacity:0;animation:dots 1s infinite}
+  #loader .dots span:nth-child(2){animation-delay:0.15s}
+  #loader .dots span:nth-child(3){animation-delay:0.3s}
+  @keyframes dots{0%{transform:translateY(0);opacity:0.2}50%{transform:translateY(-6px);opacity:1}100%{transform:translateY(0);opacity:0.2}}
+
+  /* Layout */
+  header{
+    position:sticky;top:0;z-index:1000;background:linear-gradient(180deg, rgba(20,12,10,0.6), rgba(20,12,10,0.28));
+    backdrop-filter: blur(6px);border-bottom:1px solid rgba(255,255,255,0.03)
+  }
+  .container{max-width:var(--max-width);margin:0 auto;padding:20px}
+  .header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{
+    width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#8f6f38);
+    display:flex;align-items:center;justify-content:center;font-weight:700;color:#2b1b16;
+    box-shadow:0 4px 12px rgba(0,0,0,0.5)
+  }
+  .site-title{font-weight:700;font-size:18px;color:var(--muted)}
+  nav{display:flex;gap:12px;align-items:center}
+  nav a{color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:8px;font-size:14px}
+  nav a:hover{background:var(--glass)}
+  .meta-actions{display:flex;gap:8px;align-items:center}
+
+  /* hamburger */
+  .hamburger{display:none;border:0;background:transparent;color:var(--muted);font-size:20px}
+  @media(max-width:880px){
+    nav{display:none}
+    .hamburger{display:block}
+  }
+
+  /* Hero */
+  .hero{padding:48px 0 28px}
+  .hero-card{display:flex;gap:20px;align-items:center;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:22px;border-radius:16px;border:1px solid rgba(255,255,255,0.03)}
+  .hero-photo{width:120px;height:120px;border-radius:12px;overflow:hidden;flex:0 0 120px}
+  .hero-photo img{width:100%;height:100%;object-fit:cover;display:block}
+  .hero-copy{flex:1}
+  .hero-copy h1{margin:0;font-size:22px;color:var(--muted)}
+  .hero-copy p{margin:6px 0 0;color:#d9cdbf}
+
+  /* Controls */
+  .controls{display:flex;gap:12px;align-items:center;margin:18px 0;flex-wrap:wrap}
+  .search{flex:1;min-width:180px}
+  .search input{width:100%;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--text)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{padding:8px 12px;border-radius:999px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer;color:var(--muted);font-size:13px}
+  .chip.active{background:var(--accent);color:#2b1b16;border-color:transparent;font-weight:700}
+
+  /* Grid */
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:1100px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:640px){.grid{grid-template-columns:1fr}}
+
+  .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:0;border-radius:var(--card-radius);overflow:hidden;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 20px rgba(0,0,0,0.4);transition:transform .25s, box-shadow .25s;opacity:0;transform:translateY(18px)}
+  .card.visible{opacity:1;transform:none}
+  .card .thumb{height:200px;background:#111;overflow:hidden}
+  .card .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}
+  .card:hover{transform:translateY(-6px)}
+  .card:hover .thumb img{transform:scale(1.05)}
+  .card .content{padding:14px}
+  .card .meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+  .category{font-size:12px;padding:6px 8px;border-radius:8px;background:rgba(0,0,0,0.25);color:var(--muted)}
+  .title{font-weight:700;margin:4px 0 8px}
+  .excerpt{color:#d7cab7;font-size:14px;line-height:1.5}
+  .tags{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .tag{font-size:12px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.02);color:var(--muted)}
+
+  .card .footer{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-top:1px solid rgba(255,255,255,0.02);font-size:13px;color:#d7cab7}
+  .btn{padding:8px 12px;border-radius:999px;cursor:pointer;border:1px solid rgba(255,255,255,0.04);background:transparent;color:var(--muted)}
+
+  /* Modal post */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:28px;z-index:2000}
+  .modal.active{display:flex}
+  .modal .sheet{width:100%;max-width:980px;background:linear-gradient(180deg,var(--panel),#231413);border-radius:14px;padding:18px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 30px 80px rgba(0,0,0,0.7);max-height:92vh;overflow:auto}
+  .modal .top{display:flex;gap:16px;align-items:flex-start}
+  .gallery{flex:1;min-width:300px;border-radius:10px;overflow:hidden;background:#111}
+  .gallery img{width:100%;height:420px;object-fit:cover;display:block}
+  .post-body{flex:1;padding:8px 12px;color:#efe7d9}
+  .post-body h2{margin-top:0;color:var(--muted)}
+  .post-meta{color:#cebfa8;font-size:13px;margin-bottom:8px}
+  .close{background:transparent;border:0;color:var(--muted);font-size:18px;padding:8px}
+
+  .gallery-controls{display:flex;gap:8px;justify-content:center;margin-top:8px}
+  .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.08)}
+  .dot.active{background:var(--accent)}
+
+  /* comments */
+  .comments{margin-top:12px;border-top:1px dashed rgba(255,255,255,0.03);padding-top:12px}
+  .comment-list{display:flex;flex-direction:column;gap:12px}
+  .comment{background:rgba(0,0,0,0.15);padding:12px;border-radius:10px}
+  .comment small{color:#cbbda8;display:block;margin-bottom:6px}
+  .comment-form{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .comment-form input,.comment-form textarea{padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--text)}
+  .like{cursor:pointer;padding:6px;border-radius:10px;background:rgba(255,255,255,0.02)}
+
+  /* footer */
+  footer{margin-top:36px;padding:28px 0;color:#cdbfa8}
+  .social{display:flex;gap:12px;align-items:center}
+
+  /* tiny responsive tweaks */
+  @media(max-width:640px){
+    .hero-card{flex-direction:row;gap:12px}
+    .hero-photo{width:84px;height:84px}
+    .hero-copy h1{font-size:18px}
+    .modal .top{flex-direction:column}
+    .gallery img{height:240px}
+  }
+
+  /* subtle scroll reveal */
+  .reveal{transition:opacity .6s ease, transform .6s ease}
+</style>
 </head>
 <body>
-
-    <div id="loader">
-        <h1>HARUMICHIBLOG</h1>
+  <!-- LOADER -->
+  <div id="loader" aria-hidden="false">
+    <div class="box" role="status" aria-live="polite">
+      <div class="title">HarumichiBLOGを読み込み中</div>
+      <div class="dots"><span></span><span></span><span></span></div>
     </div>
+  </div>
 
-    <header class="header">
-        <div class="logo">Harumichi<span>BLOG</span></div>
-        <nav class="nav" id="navMenu">
-            <a href="index.html">Home</a>
-            <a href="articles.html">Articles</a>
-            <a href="gallery.html">Gallery</a>
-            <a href="contact.html">Contact</a>
-        </nav>
-        <div class="header-controls">
-            <button id="darkModeToggle" class="dark-toggle">🌙</button>
-            <button id="menuToggle" class="hamburger">☰</button>
+  <!-- HEADER -->
+  <header>
+    <div class="container header-inner">
+      <div class="brand">
+        <div class="logo">CJ</div>
+        <div>
+          <div class="site-title">HarumichiBLOG</div>
+          <div style="font-size:12px;color:#cbbda8">日常・写真・旅行 / 泉岡の記録</div>
         </div>
-    </header>
+      </div>
 
-    <section class="hero fade-in">
-        <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1600&q=80" alt="Articles">
-        <div class="hero-text">
-            <h1>ARTICLES</h1>
-            <p>HarumichiBLOGのストリート・カルチャー記事一覧</p>
+      <nav>
+        <a href="#" data-nav="home">Home</a>
+        <a href="#" data-nav="daily">日常</a>
+        <a href="#" data-nav="photo">写真</a>
+        <a href="#" data-nav="travel">旅行</a>
+        <a href="#" data-nav="contact">Contact</a>
+      </nav>
+
+      <div class="meta-actions">
+        <button class="btn" id="themeToggle" aria-pressed="false">☆</button>
+        <button class="hamburger" id="hamburger" aria-label="メニュー">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MOBILE NAV (hidden on wide) -->
+  <div id="mobileNav" style="display:none;padding:12px;background:linear-gradient(180deg,rgba(0,0,0,0.2),transparent);border-bottom:1px solid rgba(255,255,255,0.02)">
+    <div class="container" style="display:flex;gap:10px;flex-wrap:wrap">
+      <a class="chip" data-nav="home">Home</a>
+      <a class="chip" data-nav="daily">日常</a>
+      <a class="chip" data-nav="photo">写真</a>
+      <a class="chip" data-nav="travel">旅行</a>
+      <a class="chip" data-nav="contact">Contact</a>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <main class="container">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="hero-photo"><img src="https://images.unsplash.com/photo-1526772662000-3f88f10405ff?q=80&w=800&auto=format&fit=crop&ixlib=rb-4.0.3&s=3d8e3e5e4cd8a1b6f0b8f3f9e7b9d2c4" alt="hero photo"></div>
+        <div class="hero-copy">
+          <h1>HarumichiBLOG</h1>
+          <p>人生の記録</p>
         </div>
+      </div>
     </section>
 
-    <main class="content">
-        <section class="article fade-in">
-            <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80" alt="Article 1">
-            <div class="text">
-                <h2>タイトル1</h2>
-                <p>記事1</p>
-            </div>
-        </section>
+    <!-- CONTROLS -->
+    <div class="controls">
+      <div class="search">
+        <input id="searchInput" placeholder="投稿を検索（タイトル・本文）" aria-label="検索">
+      </div>
+      <div class="filters" id="filterChips">
+        <button class="chip active" data-cat="all">すべて</button>
+        <button class="chip" data-cat="日常">日常</button>
+        <button class="chip" data-cat="写真">写真</button>
+        <button class="chip" data-cat="旅行">旅行</button>
+      </div>
+    </div>
 
-        <section class="article fade-in">
-            <img src="https://images.unsplash.com/photo-1502378735452-bc7d86632805?auto=format&fit=crop&w=800&q=80" alt="Article 2">
-            <div class="text">
-                <h2>タイトル2</h2>
-                <p>記事2</p>
-            </div>
-        </section>
+    <!-- POSTS GRID -->
+    <section id="postsGrid" class="grid" aria-live="polite"></section>
 
-        <section class="article fade-in">
-            <img src="https://images.unsplash.com/photo-1499084732479-de2c02d45fc4?auto=format&fit=crop&w=800&q=80" alt="Article 3">
-            <div class="text">
-                <h2>タイトル3</h2>
-                <p>記事3</p>
-            </div>
-        </section>
-    </main>
+    <div style="display:flex;justify-content:center;margin-top:18px">
+      <button id="loadMore" class="btn">もっと読み込む</button>
+    </div>
 
-    <footer class="footer fade-in">
-        <p>© 2025 HarumichiBLOG | Designed with Passion</p>
+    <!-- FOOTER -->
+    <footer>
+      <div class="container">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+          <div>
+            <strong>HarumichiBLOG</strong><br>
+            <small>写真と旅の記録 — 泉岡</small>
+          </div>
+          <div class="social">
+            <a class="chip" href="#" onclick="window.open('https://instagram.com','_blank')">Instagram</a>
+            <a class="chip" href="#" onclick="window.open('https://twitter.com','_blank')">X（Twitter）</a>
+            <a class="chip" href="#" onclick="window.open('https://youtube.com','_blank')">YouTube</a>
+          </div>
+        </div>
+        <div style="margin-top:12px;color:#bda98a;font-size:13px">© <span id="year"></span> HarumichiBLOG</div>
+      </div>
     </footer>
+  </main>
 
-    <script src="script.js"></script>
+  <!-- POST MODAL -->
+  <div id="postModal" class="modal" role="dialog" aria-modal="true" aria-hidden="true">
+    <div class="sheet" role="document">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="close" id="closeModal" aria-label="閉じる">✕</button>
+          <div style="font-weight:700;color:var(--muted)" id="modalTitle">タイトル</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="post-meta" id="modalMeta">カテゴリ • 2025-10-23</div>
+          <button class="btn" id="modalLike">♡ 0</button>
+        </div>
+      </div>
+
+      <div class="top" style="margin-top:8px">
+        <div class="gallery" aria-hidden="false">
+          <img id="galleryImg" src="" alt="post image">
+          <div class="gallery-controls" id="galleryDots"></div>
+        </div>
+
+        <div class="post-body">
+          <h2 id="modalH2">見出し</h2>
+          <div id="modalContent">textああああああああああああああ</div>
+
+          <div class="comments" id="comments">
+            <h3 style="margin:8px 0 6px;color:var(--muted)">コメント</h3>
+            <div class="comment-list" id="commentList"></div>
+
+            <form class="comment-form" id="commentForm" onsubmit="return false;">
+              <input id="commentName" placeholder="名前（任意）" />
+              <textarea id="commentText" rows="3" placeholder="コメントを書く..." required></textarea>
+              <div style="display:flex;gap:8px;justify-content:flex-end">
+                <button class="btn" id="submitComment">送信</button>
+              </div>
+            </form>
+          </div>
+
+          <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+            <div style="font-size:13px;color:#d7cab7">共有</div>
+            <button class="chip" id="shareTwitter">X にシェア</button>
+            <button class="chip" id="shareInstagram">Instagram（リンク）</button>
+            <button class="chip" id="copyLink">リンクをコピー</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/*
+  サンプル投稿データ（必要に応じて追加/編集してください）
+  画像は Unsplash のサンプル。ローカル画像に差し替える場合は URL を置換してください。
+*/
+const POSTS = [
+  {
+    id: "p1",
+    title: "あ",
+    category: "日常",
+    date: "2025-10-18",
+    excerpt: "ああああああああああああああああああ",
+    content: "<p>あああああああああああああ</p>",
+    tags:["朝","コーヒー"],
+    images:[
+      "https://images.unsplash.com/photo-1502082553048-f009c37129b9?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=ee1f6e6b3f3d2d1b7c1f8f5a8fb7a1e4",
+      "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=5b9b9872f6c07b9c0e2fa6a3f1d6f2bd"
+    ],
+    likes: 12
+  },
+  {
+    id: "p2",
+    title: "あ",
+    category: "写真",
+    date: "2025-09-02",
+    excerpt: "あああああああああああああああああ",
+    content: "<p>あああああああ</p>",
+    tags:["夜景","街歩き"],
+    images:[
+      "https://images.unsplash.com/photo-1477768663694-9c8e0ffbba0b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=32d8a9d1a2e4a2f9c0e8c7b1e3a6b9f0"
+    ],
+    likes: 6
+  },
+  {
+    id: "p3",
+    title: "あ",
+    category: "旅行",
+    date: "2025-07-14",
+    excerpt: "ああああああああああああああああああああああ",
+    content: "<p>あああああああ</p>",
+    tags:["海","日帰り"],
+    images:[
+      "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=3ba3b1fc6ddc2d9d7f8b5a6f9a1c7e3b",
+      "https://images.unsplash.com/photo-1501973801540-537f08ccae7b?q=80&w=1400&auto=format&fit=crop&ixlib=rb-4.0.3&s=15b2b8a12f4b9c6a924c8a9d7a1d0f4f"
+    ],
+    likes: 22
+  },
+  // さらに投稿を追加可能
+];
+
+/* --- 初期設定 --- */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('year').textContent = new Date().getFullYear();
+  initUI();
+  setTimeout(()=>{ document.getElementById('loader').style.display='none' }, 600); // loaderを消す
+});
+
+/* --- UI / レンダリング --- */
+let filtered = POSTS.slice();
+let perPage = 6;
+let page = 1;
+
+function initUI(){
+  renderPosts();
+  setupFilters();
+  setupSearch();
+  setupLoadMore();
+  setupHamburger();
+  setupThemeToggle();
+  setupNavLinks();
+}
+
+/* Render post cards (grid) */
+function renderPosts(reset=false){
+  if(reset){ page = 1; }
+  const grid = document.getElementById('postsGrid');
+  if(reset) grid.innerHTML = '';
+  const start = (page-1)*perPage;
+  const end = page*perPage;
+  const slice = filtered.slice(start, end);
+
+  slice.forEach(post => {
+    const el = document.createElement('article');
+    el.className = 'card reveal';
+    el.innerHTML = `
+      <div class="thumb"><img loading="lazy" src="${post.images[0]}" alt="${escapeHtml(post.title)}"></div>
+      <div class="content">
+        <div class="meta">
+          <div class="category">${post.category}</div>
+          <div style="font-size:13px;color:#d7cab7">${post.date}</div>
+        </div>
+        <div class="title">${post.title}</div>
+        <div class="excerpt">${post.excerpt}</div>
+        <div class="tags">${post.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+      <div class="footer">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn openPost" data-id="${post.id}">読む</button>
+          <button class="like" data-id="${post.id}">❤ ${getLikes(post.id)}</button>
+        </div>
+        <div style="font-size:13px;color:#bda98a">${post.likes} likes</div>
+      </div>
+    `;
+    grid.appendChild(el);
+    // reveal animation
+    setTimeout(()=> el.classList.add('visible'), 60);
+  });
+
+  // attach open handlers & like
+  document.querySelectorAll('.openPost').forEach(b => b.onclick = e => openPostModal(e.target.dataset.id));
+  document.querySelectorAll('.like').forEach(b => b.onclick = e => toggleLike(e.target.dataset.id, e.target));
+}
+
+/* Filters */
+function setupFilters(){
+  document.querySelectorAll('#filterChips .chip').forEach(btn=>{
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#filterChips .chip').forEach(x=>x.classList.remove('active'));
+      btn.classList.add('active');
+      const cat = btn.dataset.cat;
+      applyFilter(cat);
+    });
+  });
+}
+function applyFilter(cat){
+  if(cat === 'all'){
+    filtered = POSTS.slice();
+  } else {
+    filtered = POSTS.filter(p => p.category === cat);
+  }
+  renderPosts(true);
+}
+
+/* Search */
+function setupSearch(){
+  const input = document.getElementById('searchInput');
+  let timeout = null;
+  input.addEventListener('input', () => {
+    clearTimeout(timeout);
+    timeout = setTimeout(()=> {
+      const q = input.value.trim().toLowerCase();
+      filtered = POSTS.filter(p => (p.title + p.content + p.excerpt).toLowerCase().includes(q));
+      renderPosts(true);
+    }, 220);
+  });
+}
+
+/* Load more */
+function setupLoadMore(){
+  document.getElementById('loadMore').addEventListener('click', () => {
+    page++;
+    const totalPages = Math.ceil(filtered.length / perPage);
+    if(page > totalPages){ page = totalPages; alert('これ以上投稿はありません'); return; }
+    renderPosts();
+  });
+}
+
+/* Hamburger / Mobile nav */
+function setupHamburger(){
+  const ham = document.getElementById('hamburger');
+  const mob = document.getElementById('mobileNav');
+  ham.addEventListener('click', () => {
+    mob.style.display = (mob.style.display === 'none' || mob.style.display === '') ? 'block' : 'none';
+  });
+}
+
+/* Theme toggle (small) */
+function setupThemeToggle(){
+  const t = document.getElementById('themeToggle');
+  t.addEventListener('click', () => {
+    const pressed = t.getAttribute('aria-pressed') === 'true';
+    if(!pressed){
+      document.documentElement.style.setProperty('--bg','#f7f1ea');
+      document.documentElement.style.setProperty('--panel','#f2e9df');
+      document.documentElement.style.setProperty('--muted','#3b2a20');
+      document.documentElement.style.setProperty('--text','#2a1f18');
+      document.documentElement.style.setProperty('--glass','rgba(0,0,0,0.02)');
+      t.setAttribute('aria-pressed','true');
+    } else {
+      // revert
+      document.documentElement.style.removeProperty('--bg');
+      document.documentElement.style.removeProperty('--panel');
+      document.documentElement.style.removeProperty('--muted');
+      document.documentElement.style.removeProperty('--text');
+      document.documentElement.style.removeProperty('--glass');
+      t.setAttribute('aria-pressed','false');
+    }
+  });
+}
+
+/* Nav links (smooth filter) */
+function setupNavLinks(){
+  document.querySelectorAll('[data-nav]').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.preventDefault();
+      const target = a.dataset.nav;
+      if(target==='home'){ applyFilter('all'); document.getElementById('searchInput').value=''; }
+      else if(target==='daily'){ applyFilter('日常'); }
+      else if(target==='photo'){ applyFilter('写真'); }
+      else if(target==='travel'){ applyFilter('旅行'); }
+      else if(target==='contact'){ window.scrollTo({top:document.body.scrollHeight, behavior:'smooth'}); }
+    });
+  });
+}
+
+/* --- Modal / Post detail --- */
+const modal = document.getElementById('postModal');
+const galleryImg = document.getElementById('galleryImg');
+const galleryDots = document.getElementById('galleryDots');
+
+function openPostModal(id){
+  const post = POSTS.find(p => p.id === id);
+  if(!post) return;
+  document.getElementById('modalTitle').textContent = post.title;
+  document.getElementById('modalMeta').textContent = `${post.category} • ${post.date}`;
+  document.getElementById('modalH2').textContent = post.title;
+  document.getElementById('modalContent').innerHTML = post.content;
+  document.getElementById('modalLike').textContent = `♡ ${getLikes(id)}`;
+  document.getElementById('modalLike').onclick = ()=>{ toggleLike(id, document.getElementById('modalLike')) };
+
+  // gallery
+  currentGallery = 0;
+  galleryImages = post.images.slice();
+  renderGallery();
+
+  // comments
+  renderComments(id);
+
+  modal.classList.add('active');
+  modal.setAttribute('aria-hidden','false');
+
+  // copy link button
+  document.getElementById('copyLink').onclick = () => {
+    const link = location.href + '#post=' + id;
+    navigator.clipboard?.writeText(link).then(()=> alert('リンクをコピーしました'));
+  };
+  // share to Twitter
+  document.getElementById('shareTwitter').onclick = () => {
+    const text = encodeURIComponent(`${post.title} — Calm Journey Blog`);
+    const url = encodeURIComponent(location.href + '#post=' + id);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank');
+  };
+}
+
+document.getElementById('closeModal').addEventListener('click', closeModal);
+modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+function closeModal(){
+  modal.classList.remove('active');
+  modal.setAttribute('aria-hidden','true');
+}
+
+/* Gallery */
+let galleryImages = [];
+let currentGallery = 0;
+function renderGallery(){
+  if(!galleryImages.length) return;
+  galleryImg.src = galleryImages[currentGallery];
+  // dots
+  galleryDots.innerHTML = '';
+  galleryImages.forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===currentGallery ? ' active':'');
+    d.onclick = ()=> { currentGallery = i; renderGallery(); }
+    galleryDots.appendChild(d);
+  });
+  // click to next
+  galleryImg.onclick = ()=> {
+    currentGallery = (currentGallery+1) % galleryImages.length;
+    renderGallery();
+  }
+}
+
+/* --- Comments (localStorage per post) --- */
+function getCommentsKey(postId){ return 'cj_comments_' + postId; }
+function renderComments(postId){
+  const list = document.getElementById('commentList');
+  list.innerHTML = '';
+  const comments = JSON.parse(localStorage.getItem(getCommentsKey(postId)) || '[]');
+  if(comments.length===0) list.innerHTML = '<div style="color:#bda98a">まだコメントはありません。感想をどうぞ！</div>';
+  comments.forEach(c => {
+    const el = document.createElement('div');
+    el.className = 'comment';
+    el.innerHTML = `<small>${escapeHtml(c.name || '匿名')} • ${new Date(c.ts).toLocaleString()}</small><div>${escapeHtml(c.text)}</div>`;
+    list.appendChild(el);
+  });
+
+  // submit
+  document.getElementById('submitComment').onclick = ()=>{
+    const name = document.getElementById('commentName').value.trim();
+    const text = document.getElementById('commentText').value.trim();
+    if(!text){ alert('コメントを入力してください'); return; }
+    const comments = JSON.parse(localStorage.getItem(getCommentsKey(postId)) || '[]');
+    comments.unshift({name, text, ts:Date.now()});
+    localStorage.setItem(getCommentsKey(postId), JSON.stringify(comments));
+    document.getElementById('commentText').value='';
+    document.getElementById('commentName').value='';
+    renderComments(postId);
+  };
+}
+
+/* --- Likes (localStorage) --- */
+function getLikesKey(postId){ return 'cj_likes_' + postId; }
+function getLikes(postId){
+  const stored = JSON.parse(localStorage.getItem(getLikesKey(postId)) || 'null');
+  if(stored === null){
+    const p = POSTS.find(x=>x.id===postId);
+    return p ? p.likes : 0;
+  }
+  return stored;
+}
+function toggleLike(postId, el){
+  const key = getLikesKey(postId);
+  let val = JSON.parse(localStorage.getItem(key) || 'null');
+  if(val === null) { // store initial if not
+    val = POSTS.find(p=>p.id===postId)?.likes || 0;
+  }
+  // toggle: simple +1 / -1 per click persisted as number (no user accounts)
+  val = val + 1;
+  localStorage.setItem(key, JSON.stringify(val));
+  if(el) el.textContent = `♡ ${val}`;
+}
+
+/* Utility: escape HTML */
+function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
+
+/* Small accessibility: open specific post via hash */
+window.addEventListener('load', () => {
+  const m = location.hash.match(/post=(.+)/);
+  if(m){ openPostModal(m[1]); }
+});
+
+/* tiny intersection observer for reveal */
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(en=>{
+    if(en.isIntersecting){ en.target.classList.add('visible'); io.unobserve(en.target); }
+  });
+},{threshold:0.12});
+document.addEventListener('DOMContentLoaded', ()=> {
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+});
+
+/* helper to avoid errors when copying code */
+(function ensurePostRender(){
+  const grid = document.getElementById('postsGrid');
+  if(grid) {
+    grid.innerHTML = ''; // reset
+    // initial filtered = all posts
+    filtered = POSTS.slice();
+    renderPosts(true);
+  }
+})();
+</script>
 </body>
 </html>
